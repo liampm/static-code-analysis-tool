@@ -1,20 +1,43 @@
 package main
 
 import (
- "fmt"
- "net/http"
- "os"
+	"database/sql"
+	"fmt"
+	"github.com/go-chi/chi"
+	"github.com/liampm/static-code-analysis-tool/adapter/controller"
+	"github.com/liampm/static-code-analysis-tool/adapter/pg/read"
+	"github.com/liampm/static-code-analysis-tool/adapter/pg/write"
+	_ "github.com/lib/pq"
+	"net/http"
+	"os"
 )
 
 func main() {
- var PORT string
- if PORT = os.Getenv("PORT"); PORT == "" {
-  PORT = "3001"
- }
+	var PORT string
+	if PORT = os.Getenv("PORT"); PORT == "" {
+		PORT = "3001"
+	}
 
- http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-  fmt.Fprintf(w, "Hello World from path: %s\n", r.URL.Path)
- })
+	router := chi.NewRouter()
 
- http.ListenAndServe(":" + PORT, nil)
+	db, err := sql.Open("postgres", fmt.Sprintf("host=db user=%s dbname=%s password=%s sslmode=disable", "dev", "scat", "dev"))
+
+	if err != nil {
+		panic(err)
+	}
+
+	projectController := controller.ProjectController{
+		read.ProjectRepo(db),
+		write.ProjectRepo(db),
+	}
+
+	router.Get("/project", projectController.All())
+	router.Get("/project/{id}", projectController.ById())
+	router.Post("/project", projectController.Create())
+
+	err = http.ListenAndServe(":"+PORT, router)
+
+	if err != nil {
+		panic(err)
+	}
 }

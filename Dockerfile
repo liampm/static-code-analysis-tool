@@ -1,5 +1,7 @@
 FROM golang:1.12.5-alpine3.9
 
+ENV GO111MODULE=on
+
 RUN apk add git inotify-tools procps
 
 ADD ./src /go/src/app
