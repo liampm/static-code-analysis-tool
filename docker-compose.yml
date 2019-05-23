@@ -7,7 +7,7 @@ services:
   app:
     container_name: scat-app
     build: .
-    command: go run main.go
+    command: go-watch.sh
     volumes:
       - ./src:/go/src/app
     working_dir: /go/src/app
