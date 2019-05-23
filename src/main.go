@@ -35,6 +35,15 @@ func main() {
 	router.Get("/project/{id}", projectController.ById())
 	router.Post("/project", projectController.Create())
 
+	targetController := controller.TargetController{
+		read.TargetRepo(db),
+		write.TargetRepo(db),
+	}
+
+	router.Get("/target/project/{projectId}", targetController.AllForProject())
+	router.Get("/target/{id}", targetController.ById())
+	router.Post("/target", targetController.Create())
+
 	err = http.ListenAndServe(":"+PORT, router)
 
 	if err != nil {
