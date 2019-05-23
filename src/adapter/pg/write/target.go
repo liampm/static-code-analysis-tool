@@ -46,7 +46,7 @@ func (repo *PostgresTargetRepo) find(id uuid.UUID) (target domain.Target, err er
 }
 
 func (repo *PostgresTargetRepo) insert(target domain.Target) {
-	_, err := repo.db.Exec("INSERT INTO target (id, name) VALUES ($1, $2, $3)", target.Id, target.projectId, target.Name)
+	_, err := repo.db.Exec("INSERT INTO target (id, name) VALUES ($1, $2, $3)", target.Id, target.ProjectId, target.Name)
 
 	if err != nil {
 		panic(err) // Panic whilst we're in development
@@ -54,7 +54,7 @@ func (repo *PostgresTargetRepo) insert(target domain.Target) {
 }
 
 func (repo *PostgresTargetRepo) update(target domain.Target) {
-	_, err := repo.db.Exec("UPDATE target SET id = $1, projectId = $2, name = $3", target.Id, target.projectId, target.Name)
+	_, err := repo.db.Exec("UPDATE target SET id = $1, projectId = $2, name = $3", target.Id, target.ProjectId, target.Name)
 
 	if err != nil {
 		panic(err) // Panic whilst we're in development

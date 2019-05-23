@@ -20,7 +20,7 @@ func (repo *PostgresTargetReadRepo) Find(id uuid.UUID) (domain.Target, error) {
 	row := repo.db.QueryRow("SELECT * FROM target WHERE id = $1", id)
 
 	// Populate the entity with the information from the row
-	err := row.Scan(&target.Id, &target.ProjectId &target.Name)
+	err := row.Scan(&target.Id, &target.ProjectId, &target.Name)
 
 	if err == sql.ErrNoRows {
 		return target, err // Return the error so that it can be dealt with
