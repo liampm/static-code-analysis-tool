@@ -10,13 +10,17 @@ services:
     command: go-watch.sh
     volumes:
       - ./src:/go/src/app
+      - $GOPATH/pkg/mod:/go/pkg/mod
     working_dir: /go/src/app
     ports:
       - ${PORT}:${PORT}
     environment:
       - PORT
+      - GOPATH=/go
     links:
       - db
+    restart:
+      always
   db:
     image: postgres:10.4-alpine
     volumes:
@@ -24,6 +28,7 @@ services:
     ports:
       - ${DATABASE_HOST_PORT}:5432
     environment:
+      POSTGRES_DB:       scat
       POSTGRES_USER:     dev
       POSTGRES_PASSWORD: dev
 
