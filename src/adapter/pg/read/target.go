@@ -31,11 +31,11 @@ func (repo *PostgresTargetReadRepo) Find(id uuid.UUID) (domain.Target, error) {
 	return target, nil
 }
 
-func (repo *PostgresTargetReadRepo) AllForProject(id uuid.UUID) []domain.Target {
+func (repo *PostgresTargetReadRepo) AllForProject(id uuid.UUID) ([]domain.Target, error) {
 	rows, err := repo.db.Query("SELECT * FROM target WHERE projectId = $1", id)
 
 	if err != nil {
-		panic(err) // Panic whilst we're in development
+		return nil, err // Panic whilst we're in development
 	}
 
 	targets := []domain.Target{}
@@ -46,5 +46,5 @@ func (repo *PostgresTargetReadRepo) AllForProject(id uuid.UUID) []domain.Target 
 		targets = append(targets, target)
 	}
 
-	return targets
+	return targets, nil
 }
