@@ -1,0 +1,29 @@
+version: "3.1"
+
+volumes:
+    postgres-data: ~
+
+services:
+  app:
+    container_name: scat-app
+    build: .
+    command: go run main.go
+    volumes:
+      - ./src:/go/src/app
+    working_dir: /go/src/app
+    ports:
+      - ${PORT}:${PORT}
+    environment:
+      - PORT
+    links:
+      - db
+  db:
+    image: postgres:10.4-alpine
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - ${DATABASE_HOST_PORT}:5432
+    environment:
+      POSTGRES_USER:     dev
+      POSTGRES_PASSWORD: dev
+
