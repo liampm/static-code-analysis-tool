@@ -15,7 +15,7 @@ func TargetRepo(db *sql.DB) *PostgresTargetRepo {
 }
 
 func (repo *PostgresTargetRepo) Save(target domain.Target) {
-	_, err := repo.find(target.Id)
+	_, err := repo.Find(target.Id)
 
 	if err == sql.ErrNoRows {
 		repo.insert(target)
@@ -28,7 +28,7 @@ func (repo *PostgresTargetRepo) Save(target domain.Target) {
 	panic(err) // Panic whilst we're in development
 }
 
-func (repo *PostgresTargetRepo) find(id uuid.UUID) (target domain.Target, err error) {
+func (repo *PostgresTargetRepo) Find(id uuid.UUID) (target domain.Target, err error) {
 	target = domain.Target{}
 
 	row := repo.db.QueryRow("SELECT * FROM target WHERE id = $1", id)
@@ -46,7 +46,7 @@ func (repo *PostgresTargetRepo) find(id uuid.UUID) (target domain.Target, err er
 }
 
 func (repo *PostgresTargetRepo) insert(target domain.Target) {
-	_, err := repo.db.Exec("INSERT INTO target (id, name) VALUES ($1, $2, $3)", target.Id, target.ProjectId, target.Name)
+	_, err := repo.db.Exec("INSERT INTO target (id, project_id, name) VALUES ($1, $2, $3)", target.Id, target.ProjectId, target.Name)
 
 	if err != nil {
 		panic(err) // Panic whilst we're in development
@@ -54,7 +54,7 @@ func (repo *PostgresTargetRepo) insert(target domain.Target) {
 }
 
 func (repo *PostgresTargetRepo) update(target domain.Target) {
-	_, err := repo.db.Exec("UPDATE target SET id = $1, projectId = $2, name = $3", target.Id, target.ProjectId, target.Name)
+	_, err := repo.db.Exec("UPDATE target SET project_id = $2, name = $3 WHERE id = $1", target.Id, target.ProjectId, target.Name)
 
 	if err != nil {
 		panic(err) // Panic whilst we're in development

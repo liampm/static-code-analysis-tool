@@ -21,28 +21,45 @@ func main() {
 	router := chi.NewRouter()
 
 	db, err := sql.Open("postgres", fmt.Sprintf("host=db user=%s dbname=%s password=%s sslmode=disable", "dev", "scat", "dev"))
+	defer db.Close()
 
 	if err != nil {
 		panic(err)
 	}
 
+	taskRepo := write.TaskRepo(db)
+	targetRepo := write.TargetRepo(db)
+	taskReadRepo := read.TaskRepo(db)
+	targetReadRepo := read.TargetRepo(db)
+	projectRepo := write.ProjectRepo(db, taskReadRepo, targetReadRepo)
+
+
 	projectController := controller.ProjectController{
 		read.ProjectRepo(db),
-		write.ProjectRepo(db),
+		projectRepo,
 	}
+	taskController := controller.TaskController{
+		taskReadRepo,
+		taskRepo,
+	}
+	jobController := controller.NewJobController(projectRepo, write.JobRepo(db))
 
 	router.Get("/project", projectController.All())
 	router.Get("/project/{id}", projectController.ById())
 	router.Post("/project", projectController.Create())
+	router.Get("/project/{projectId}/task", taskController.All())
+	router.Get("/project/{projectId}/task/{id}", taskController.ById())
+	router.Post("/project/{projectId}/task", taskController.Create())
+	router.Post("/project/{projectId}/job", jobController.Initiate())
 
 	targetController := controller.TargetController{
-		read.TargetRepo(db),
-		write.TargetRepo(db),
+		targetReadRepo,
+		targetRepo,
 	}
 
-	router.Get("/target/project/{projectId}", targetController.AllForProject())
-	router.Get("/target/{id}", targetController.ById())
-	router.Post("/target", targetController.Create())
+	router.Get("/project/{projectId}/target", targetController.AllForProject())
+	router.Get("/project/{projectId}/target/{id}", targetController.ById())
+	router.Post("/project/{projectId}/target", targetController.Create())
 
 	err = http.ListenAndServe(":"+PORT, router)
 

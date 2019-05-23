@@ -9,3 +9,7 @@ type Target struct {
 	ProjectId uuid.UUID `json:"projectId"`
 	Name      string    `json:"name"`
 }
+
+func (target *Target) Directory() string {
+	return ""
+}

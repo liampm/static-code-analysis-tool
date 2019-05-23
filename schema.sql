@@ -5,6 +5,15 @@ CREATE TABLE project (
     name VARCHAR(255) NOT NULL
 );
 
+CREATE TYPE tasks AS ENUM ('fileCount');
+
+CREATE TABLE task (
+    id UUID NOT NULL PRIMARY KEY,
+    project_id UUID NOT NULL REFERENCES project(id),
+    task tasks NOT NULL,
+    UNIQUE(project_id, task)
+);
+
 CREATE TABLE target (
     id UUID NOT NULL PRIMARY KEY,
     project_id UUID NOT NULL REFERENCES project(id),
@@ -21,5 +30,7 @@ CREATE TABLE job (
 CREATE TABLE analysis (
     id UUID NOT NULL PRIMARY KEY,
     job_id UUID NOT NULL REFERENCES job(id),
+    target_id UUID NOT NULL REFERENCES target(id),
+    task_id UUID NOT NULL REFERENCES task(id),
     report JSON
 );

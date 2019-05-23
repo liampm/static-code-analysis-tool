@@ -9,38 +9,32 @@ import (
 	"net/http"
 )
 
-type TargetController struct {
-	ReadRepo  domain.TargetReadRepo
-	WriteRepo domain.TargetRepo
+type TaskController struct {
+	ReadRepo  domain.TaskReadRepo
+	WriteRepo domain.TaskRepo
 }
 
-func (controller *TargetController) AllForProject() func(w http.ResponseWriter, r *http.Request) {
+func (controller *TaskController) All() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		rawProjectId := chi.URLParam(r, "projectId")
+		projectId := chi.URLParam(r, "projectId")
+
 		w.Header().Set("Content-Type", "application/json")
 
-		if rawProjectId == "" {
+		if projectId == "" {
 			w.WriteHeader(404) // Not found for somehow missing ID
 			return
 		}
 
-		projectId, err := uuid.FromString(rawProjectId)
+		projectUuid, err := uuid.FromString(projectId)
 
 		if err != nil {
 			w.WriteHeader(404) // Not found for any invalid IDs
 			return
 		}
 
-		targets, err := controller.ReadRepo.AllForProject(projectId)
-
-		if err != nil {
-			w.WriteHeader(404)
-			return
-		}
-
 		w.WriteHeader(200)
-		jsonBody, err := json.Marshal(targets)
 
+		jsonBody, err := json.Marshal(controller.ReadRepo.AllForProject(projectUuid))
 
 		if err != nil {
 			panic(err) // Panic whilst in development
@@ -54,7 +48,7 @@ func (controller *TargetController) AllForProject() func(w http.ResponseWriter, 
 	}
 }
 
-func (controller *TargetController) ById() func(w http.ResponseWriter, r *http.Request) {
+func (controller *TaskController) ById() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 
@@ -65,21 +59,21 @@ func (controller *TargetController) ById() func(w http.ResponseWriter, r *http.R
 			return
 		}
 
-		targetId, err := uuid.FromString(id)
+		uuid, err := uuid.FromString(id)
 
 		if err != nil {
 			w.WriteHeader(404) // Not found for any invalid IDs
 			return
 		}
 
-		target, err := controller.ReadRepo.Find(targetId)
+		task, err := controller.ReadRepo.Find(uuid)
 
 		if err == sql.ErrNoRows {
 			w.WriteHeader(404)
 			return
 		}
 
-		jsonBody, err := json.Marshal(target)
+		jsonBody, err := json.Marshal(task)
 
 		if err != nil {
 			panic(err) // Panic whilst in development
@@ -94,7 +88,7 @@ func (controller *TargetController) ById() func(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (controller *TargetController) Create() func(w http.ResponseWriter, r *http.Request) {
+func (controller *TaskController) Create() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -105,20 +99,20 @@ func (controller *TargetController) Create() func(w http.ResponseWriter, r *http
 			return
 		}
 
-		target := domain.Target{}
+		task := domain.TaskInstance{}
 		decoder := json.NewDecoder(r.Body)
 
-		err = decoder.Decode(&target)
+		err = decoder.Decode(&task)
 
 		if err != nil {
 			w.WriteHeader(400)
 			return
 		}
 
-		target.Id = uuid.NewV4()
-		target.ProjectId = projectUuid
+		task.Id = uuid.NewV4()
+		task.ProjectId = projectUuid
 
-		controller.WriteRepo.Save(target)
+		controller.WriteRepo.Save(task)
 		w.WriteHeader(201)
 	}
 }
