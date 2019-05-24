@@ -23,12 +23,11 @@ func (controller *TaskController) All() func(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
+		w.WriteHeader(200)
 		err = marshalJSONResponse(w, controller.ReadRepo.AllForProject(projectUuid))
 		if err != nil {
 			panic(err) // Panic whilst in development
 		}
-
-		w.WriteHeader(200)
 	}
 }
 
@@ -48,12 +47,11 @@ func (controller *TaskController) ById() func(w http.ResponseWriter, r *http.Req
 			return
 		}
 
+		w.WriteHeader(200)
 		err = marshalJSONResponse(w, task)
 		if err != nil {
 			panic(err) // Panic whilst in development
 		}
-
-		w.WriteHeader(200)
 	}
 }
 

@@ -8,9 +8,9 @@ import (
 )
 
 type TaskInstance struct {
-	Id        uuid.UUID `json:id`
-	ProjectId uuid.UUID `json:projectId`
-	Name      string    `json:name`
+	Id        uuid.UUID `json:"id"`
+	ProjectId uuid.UUID `json:"projectId"`
+	Name      string    `json:"name"`
 }
 
 type task interface {
