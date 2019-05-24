@@ -34,8 +34,8 @@ type TargetReadRepo interface {
 	AllForProject(projectId uuid.UUID) ([]Target, error)
 }
 type JobReadRepo interface {
-	Find(id uuid.UUID) (Job, error)
-	AllForProject(project Project) []Job
+	Find(id uuid.UUID) (JobReference, error)
+	AllForProject(project Project) []JobReference
 }
 type AnalysisReadRepo interface {
 	Find(id uuid.UUID) (Analysis, error)
