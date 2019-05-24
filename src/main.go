@@ -10,6 +10,7 @@ import (
 	_ "github.com/lib/pq"
 	"net/http"
 	"os"
+	"github.com/go-chi/cors"
 )
 
 func main() {
@@ -19,6 +20,15 @@ func main() {
 	}
 
 	router := chi.NewRouter()
+
+	cors := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:7878"},
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	})
+	router.Use(cors.Handler)
 
 	db, err := sql.Open("postgres", fmt.Sprintf("host=db user=%s dbname=%s password=%s sslmode=disable", "dev", "scat", "dev"))
 	defer db.Close()
