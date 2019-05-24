@@ -7,15 +7,21 @@ import (
 )
 
 type PostgresProjectRepo struct {
-	db *sql.DB
+	db         *sql.DB
+	taskRepo   domain.TaskReadRepo
+	targetRepo domain.TargetReadRepo
 }
 
-func ProjectRepo(db *sql.DB) *PostgresProjectRepo {
-	return &PostgresProjectRepo{db: db}
+func ProjectRepo(db *sql.DB, taskRepo domain.TaskReadRepo, targetRepo domain.TargetReadRepo) *PostgresProjectRepo {
+	return &PostgresProjectRepo{
+		db:         db,
+		taskRepo:   taskRepo,
+		targetRepo: targetRepo,
+	}
 }
 
 func (repo *PostgresProjectRepo) Save(project domain.Project) {
-	_, err := repo.find(project.Id)
+	_, err := repo.Find(project.Id)
 
 	if err == sql.ErrNoRows {
 		repo.insert(project)
@@ -26,6 +32,19 @@ func (repo *PostgresProjectRepo) Save(project domain.Project) {
 	}
 
 	panic(err) // Panic whilst we're in development
+}
+
+func (repo *PostgresProjectRepo) Find(id uuid.UUID) (project domain.Project, err error) {
+	project, err = repo.find(id)
+
+	if err != nil {
+		return domain.Project{}, err
+	}
+
+	project.Targets, _ = repo.targetRepo.AllForProject(project.Id)
+	project.Tasks = repo.taskRepo.AllForProject(project.Id)
+
+	return project, nil
 }
 
 func (repo *PostgresProjectRepo) find(id uuid.UUID) (project domain.Project, err error) {
@@ -54,7 +73,7 @@ func (repo *PostgresProjectRepo) insert(project domain.Project) {
 }
 
 func (repo *PostgresProjectRepo) update(project domain.Project) {
-	_, err := repo.db.Exec("UPDATE project SET id = $1, name = $2", project.Id, project.Name)
+	_, err := repo.db.Exec("UPDATE project SET name = $2 WHERE id = $1", project.Id, project.Name)
 
 	if err != nil {
 		panic(err) // Panic whilst we're in development
