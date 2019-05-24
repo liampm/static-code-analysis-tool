@@ -1,11 +1,7 @@
 package domain
 
 import (
-	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
-	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
-	"log"
 	"path/filepath"
 )
 
@@ -34,34 +30,6 @@ type RepoDetails struct {
 	Token    string `json:"token"`
 }
 
-func (target *Target) directory() (string, error) {
-	details := target.Config.Details
-	log.Println(target)
-	switch configType := details.(type) {
-	case RepoDetails:
-		log.Println(configType)
-		return getRepoDirectory(details.(RepoDetails), target.Id)
-	default:
-		return "", errors.New("unknown config type")
-	}
-}
-
-func getRepoDirectory(config RepoDetails, targetId uuid.UUID) (string, error) {
-	outputDir := filepath.Join("/tmp", targetId.String())
-
-	log.Printf("Loading repo into %s", outputDir)
-	_, err := git.PlainClone(outputDir, true, &git.CloneOptions{
-		URL:config.Url,
-		Auth: &http.BasicAuth{
-			Username: config.Username,
-			Password: config.Token,
-		},
-		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
-	})
-
-	if err != nil {
-		return "", err
-	}
-
-	return outputDir, nil
+func (target *Target) directory(added string) string {
+	return filepath.Join("/tmp", target.Id.String(), added)
 }

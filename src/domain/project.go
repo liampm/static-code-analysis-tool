@@ -47,6 +47,11 @@ func (project *Project) loadTask(name string) task {
 
 	if name == "fileCount" {
 		actualTask = &fileCount{}
+	} else if name == "push" {
+		actualTask = &addAFile{
+			filename: "test-it.txt",
+			content:  "Does this work?",
+		}
 	} else {
 		panic(errors.New("unknown task"))
 	}
