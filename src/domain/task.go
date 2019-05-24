@@ -2,6 +2,7 @@ package domain
 
 import (
 	uuid "github.com/satori/go.uuid"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -27,13 +28,25 @@ func (task *fileCount) name() string {
 func (task *fileCount) analyse(target *Target) interface{} {
 	count := 0
 
-	_ = filepath.Walk(target.directory(), func(path string, info os.FileInfo, err error) error {
+	directory, err := target.directory()
+
+	if err != nil {
+		panic(err)
+	}
+
+	_ = filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
 
 		if !info.IsDir() {
 			count++
 		}
 		return nil
 	})
+
+	err = os.RemoveAll(directory)
+
+	if err != nil {
+		log.Printf("Failed to clear up output directory '%s'", directory)
+	}
 
 	type Result struct {
 		Count int `json:"count"`

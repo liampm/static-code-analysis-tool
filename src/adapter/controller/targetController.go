@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/liampm/static-code-analysis-tool/domain"
+	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
 	"io/ioutil"
 	"log"
@@ -94,40 +95,16 @@ func (controller *TargetController) Create() func(w http.ResponseWriter, r *http
 			w.WriteHeader(400)
 			return
 		}
+
 log.Println(processedRequest)
-		var config domain.TargetConfig
+		var config domain.TargetConfiguration
 
 		if processedRequest.RequestType == "git-repo" {
-
-			type configRequest struct {
-				Config domain.RepoConfig `json:"Config"`
+			repoDetails, _ := repoDetailsFromRequest(r, &bodyBytes)
+			config = domain.TargetConfiguration{
+				Type:domain.GIT_REPO,
+				Details:repoDetails,
 			}
-
-			processedConfig := configRequest{}
-			decoder := json.NewDecoder(bytes.NewReader(bodyBytes))
-
-			err = decoder.Decode(&processedConfig)
-			if err != nil {
-				w.WriteHeader(400)
-				writeError(w, "Failed to process Config")
-				return
-			}
-log.Println(&processedConfig.Config)
-			if processedConfig.Config.Username == "" {
-				w.WriteHeader(http.StatusBadRequest)
-				writeError(w, "A user name must be provided")
-				return
-			} else if processedConfig.Config.Url == "" {
-				w.WriteHeader(http.StatusBadRequest)
-				writeError(w, "A URL must be provided")
-				return
-			} else if processedConfig.Config.Token == "" {
-				w.WriteHeader(http.StatusBadRequest)
-				writeError(w, "A token must be provided")
-				return
-			}
-
-			config = &processedConfig.Config
 		} else {
 			w.WriteHeader(400)
 			writeError(w, fmt.Sprintf("Unrecognised target type '%s'", processedRequest.RequestType))
@@ -150,4 +127,34 @@ log.Println(&processedConfig.Config)
 func writeError(w http.ResponseWriter, errorMessage string) {
 	error, _ := json.Marshal(map[string]string{"error": errorMessage})
 	_, _ = w.Write(error)
+}
+
+func repoDetailsFromRequest(r *http.Request, bodyBytes *[]byte) (*domain.RepoDetails, error){
+	type configRequest struct {
+		Config domain.RepoDetails `json:"config"`
+	}
+
+	processedConfig := configRequest{}
+	decoder := json.NewDecoder(bytes.NewReader(*bodyBytes))
+
+	err := decoder.Decode(&processedConfig)
+	if err != nil {
+		return &domain.RepoDetails{}, errors.New("Failed to process Config")
+	}
+
+	log.Println(&processedConfig.Config)
+
+	if processedConfig.Config.Username == "" {
+		return &domain.RepoDetails{}, errors.New("A user name must be provided")
+	} else if processedConfig.Config.Url == "" {
+		return &domain.RepoDetails{}, errors.New("A URL must be provided")
+	} else if processedConfig.Config.Token == "" {
+		return &domain.RepoDetails{}, errors.New("A token must be provided")
+	}
+
+	return &domain.RepoDetails{
+		Url: processedConfig.Config.Url,
+		Username: processedConfig.Config.Username,
+		Token: processedConfig.Config.Token,
+	}, nil
 }
