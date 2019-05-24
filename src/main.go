@@ -47,11 +47,15 @@ func main() {
 		read.ProjectRepo(db),
 		projectRepo,
 	}
+	targetController := controller.TargetController{
+		targetReadRepo,
+		targetRepo,
+	}
 	taskController := controller.TaskController{
 		taskReadRepo,
 		taskRepo,
 	}
-	jobController := controller.NewJobController(projectRepo, write.JobRepo(db))
+	jobController := controller.NewJobController(projectRepo, read.JobRepo(db), write.JobRepo(db))
 
 	router.Get("/project", projectController.All())
 	router.Get("/project/{id}", projectController.ById())
@@ -59,13 +63,8 @@ func main() {
 	router.Get("/project/{projectId}/task", taskController.All())
 	router.Get("/project/{projectId}/task/{id}", taskController.ById())
 	router.Post("/project/{projectId}/task", taskController.Create())
+	router.Get("/project/{projectId}/job", jobController.ByProjectId())
 	router.Post("/project/{projectId}/job", jobController.Initiate())
-
-	targetController := controller.TargetController{
-		targetReadRepo,
-		targetRepo,
-	}
-
 	router.Get("/project/{projectId}/target", targetController.AllForProject())
 	router.Get("/project/{projectId}/target/{id}", targetController.ById())
 	router.Post("/project/{projectId}/target", targetController.Create())
