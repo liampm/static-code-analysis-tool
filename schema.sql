@@ -34,3 +34,5 @@ CREATE TABLE analysis (
     task_id UUID NOT NULL REFERENCES task(id),
     report JSON
 );
+
+ALTER TYPE tasks ADD VALUE 'push' AFTER 'fileCount';
