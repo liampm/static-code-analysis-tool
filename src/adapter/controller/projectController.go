@@ -69,5 +69,10 @@ func (controller *ProjectController) Create() func(w http.ResponseWriter, r *htt
 		controller.WriteRepo.Save(project)
 
 		w.WriteHeader(201)
+
+		err = marshalJSONResponse(w, project)
+		if err != nil {
+			panic(err) // Panic whilst in development
+		}
 	}
 }
