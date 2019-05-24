@@ -50,5 +50,3 @@ func (repo *PostgresTaskReadRepo) AllForProject(projectId uuid.UUID) []domain.Ta
 
 	return tasks
 }
-
-

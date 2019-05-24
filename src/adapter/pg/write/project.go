@@ -7,15 +7,15 @@ import (
 )
 
 type PostgresProjectRepo struct {
-	db *sql.DB
-	taskRepo domain.TaskReadRepo
+	db         *sql.DB
+	taskRepo   domain.TaskReadRepo
 	targetRepo domain.TargetReadRepo
 }
 
 func ProjectRepo(db *sql.DB, taskRepo domain.TaskReadRepo, targetRepo domain.TargetReadRepo) *PostgresProjectRepo {
 	return &PostgresProjectRepo{
-		db: db,
-		taskRepo: taskRepo,
+		db:         db,
+		taskRepo:   taskRepo,
 		targetRepo: targetRepo,
 	}
 }
@@ -35,7 +35,7 @@ func (repo *PostgresProjectRepo) Save(project domain.Project) {
 }
 
 func (repo *PostgresProjectRepo) Find(id uuid.UUID) (project domain.Project, err error) {
-	project, err := repo.find(id)
+	project, err = repo.find(id)
 
 	if err != nil {
 		return domain.Project{}, err

@@ -1,13 +1,14 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/go-chi/chi"
 	uuid "github.com/satori/go.uuid"
 	"net/http"
 )
 
-func uuidFromParam (r *http.Request, paramName string) (uuid.UUID, error) {
+func uuidFromParam(r *http.Request, paramName string) (uuid.UUID, error) {
 	paramValue := chi.URLParam(r, paramName)
 
 	if paramValue == "" {
@@ -21,4 +22,20 @@ func uuidFromParam (r *http.Request, paramName string) (uuid.UUID, error) {
 	}
 
 	return uuidValue, nil
+}
+
+func marshalJSONResponse(w http.ResponseWriter, body interface{}) error {
+	jsonBody, err := json.Marshal(body)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write(jsonBody)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

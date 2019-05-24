@@ -2,13 +2,14 @@ package domain
 
 import (
 	uuid "github.com/satori/go.uuid"
-	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
 type TaskInstance struct {
-	Id uuid.UUID `json:id`
+	Id        uuid.UUID `json:id`
 	ProjectId uuid.UUID `json:projectId`
-	Name string `json:name`
+	Name      string    `json:name`
 }
 
 type task interface {
@@ -24,13 +25,21 @@ func (task *fileCount) name() string {
 }
 
 func (task *fileCount) analyse(target *Target) interface{} {
-	files, _ := ioutil.ReadDir(target.Directory())
+	count := 0
+
+	_ = filepath.Walk(target.directory(), func(path string, info os.FileInfo, err error) error {
+
+		if !info.IsDir() {
+			count++
+		}
+		return nil
+	})
 
 	type Result struct {
-		count int
+		Count int `json:"count"`
 	}
 
 	return Result{
-		count: len(files),
+		Count: count,
 	}
 }

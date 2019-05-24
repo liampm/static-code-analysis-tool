@@ -14,5 +14,3 @@ COPY ./go-watch.sh /bin/go-watch.sh
 RUN chmod +x /bin/go-watch.sh
 
 CMD ['go-watch.sh']
-
-

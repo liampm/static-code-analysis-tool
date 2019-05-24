@@ -3,35 +3,33 @@ package domain
 import (
 	"errors"
 	"github.com/satori/go.uuid"
-	"log"
 	"time"
 )
 
 type ProjectReference struct {
-	Id      uuid.UUID `json:"id"`
-	Name    string    `json:"name"`
+	Id   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
 }
 
 type Project struct {
-	Id         uuid.UUID      `json:"id" gorm:"primary_key"`
-	Name       string         `json:"name"`
+	Id         uuid.UUID `json:"id" gorm:"primary_key"`
+	Name       string    `json:"name"`
 	Tasks      []TaskInstance
 	Targets    []Target
 	tasksCache map[string]task
 }
 
 func (project *Project) Analyse(jobId uuid.UUID) (job Job) {
+	project.tasksCache = make(map[string]task)
 	var analyses []Analysis
-	log.Printf("Analysing job %s\n", jobId)
 
-	time.Sleep(3000 * time.Millisecond)
+	time.Sleep(3000 * time.Millisecond) // TODO Remove after testing
+
 	job.Id = jobId
 	job.ProjectId = project.Id
 
 	for _, target := range project.Targets {
-		log.Printf("Analysing target %s\n", target.Name)
 		for _, task := range project.Tasks {
-			log.Printf("Performing task %s\n", task.Name)
 			analyses = append(analyses, fromTask(&job, &target, project.loadTask(task.Name), task.Id))
 		}
 	}

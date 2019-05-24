@@ -33,7 +33,6 @@ func main() {
 	targetReadRepo := read.TargetRepo(db)
 	projectRepo := write.ProjectRepo(db, taskReadRepo, targetReadRepo)
 
-
 	projectController := controller.ProjectController{
 		read.ProjectRepo(db),
 		projectRepo,

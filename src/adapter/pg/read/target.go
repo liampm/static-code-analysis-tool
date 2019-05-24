@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/liampm/static-code-analysis-tool/domain"
 	"github.com/satori/go.uuid"
+	"log"
 )
 
 type PostgresTargetReadRepo struct {
@@ -32,17 +33,22 @@ func (repo *PostgresTargetReadRepo) Find(id uuid.UUID) (domain.Target, error) {
 }
 
 func (repo *PostgresTargetReadRepo) AllForProject(id uuid.UUID) ([]domain.Target, error) {
-	rows, err := repo.db.Query("SELECT * FROM target WHERE projectId = $1", id)
+	rows, err := repo.db.Query("SELECT id, project_id, name FROM target WHERE project_id = $1", id)
 
 	if err != nil {
 		return nil, err // Panic whilst we're in development
+	}
+
+	if err = rows.Err(); err != nil {
+		panic(err) // Error related to the iteration of rows
 	}
 
 	targets := []domain.Target{}
 
 	for rows.Next() {
 		target := domain.Target{}
-		rows.Scan(&target.Id,  &target.ProjectId, &target.Name)
+		rows.Scan(&target.Id, &target.ProjectId, &target.Name)
+		log.Println(target)
 		targets = append(targets, target)
 	}
 

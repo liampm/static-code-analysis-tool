@@ -3,8 +3,10 @@ package write
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/liampm/static-code-analysis-tool/domain"
 	uuid "github.com/satori/go.uuid"
+	"log"
 )
 
 type PostgresJobRepo struct {
@@ -22,6 +24,8 @@ func (repo *PostgresJobRepo) Save(job domain.Job) {
 		repo.insert(job)
 		return
 	} else if err == nil {
+		fmt.Println("Updating")
+		fmt.Println(job)
 		repo.update(job)
 		return
 	}
@@ -71,14 +75,15 @@ func (repo *PostgresJobRepo) update(job domain.Job) {
 }
 
 func (repo *PostgresJobRepo) touchAnalysis(analysis domain.Analysis) {
-	analysis = domain.Analysis{}
-
-	row := repo.db.QueryRow("SELECT * FROM job WHERE id = $1", analysis.JobId)
+	log.Println("touch")
+	log.Println(analysis.JobId)
+	row := repo.db.QueryRow("SELECT id FROM analysis WHERE id = $1", analysis.Id)
 
 	// Populate the entity with the information from the row
 	err := row.Scan(&analysis.Id)
 
 	jsonReport, _ := json.Marshal(analysis.Report)
+	log.Println(analysis.Report)
 
 	if err == sql.ErrNoRows {
 		_, err = repo.db.Exec(
@@ -97,7 +102,6 @@ func (repo *PostgresJobRepo) touchAnalysis(analysis domain.Analysis) {
 	} else if err != nil {
 		panic(err) // Panic whilst we're in development
 	}
-
 
 	_, err = repo.db.Exec(
 		"UPDATE analysis SET job_id = $2, target_id = $3, task_id = $4, report = $5) WHERE id = $1",

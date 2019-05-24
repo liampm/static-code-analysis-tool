@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"github.com/go-chi/chi"
 	"github.com/liampm/static-code-analysis-tool/domain"
 	uuid "github.com/satori/go.uuid"
 	"net/http"
@@ -9,13 +8,13 @@ import (
 
 type JobController struct {
 	projectRepo domain.ProjectRepo
-	writeRepo domain.JobRepo
+	writeRepo   domain.JobRepo
 }
 
-func NewJobController(projectRepo domain.ProjectRepo, writeRepo domain.JobRepo) *JobController{
+func NewJobController(projectRepo domain.ProjectRepo, writeRepo domain.JobRepo) *JobController {
 	return &JobController{
 		projectRepo: projectRepo,
-		writeRepo: writeRepo,
+		writeRepo:   writeRepo,
 	}
 }
 
@@ -23,34 +22,24 @@ func (controller *JobController) Initiate() func(w http.ResponseWriter, r *http.
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		projectId := chi.URLParam(r, "projectId")
-
-		if projectId == "" {
-			w.WriteHeader(404) // Not found for somehow missing ID
-			return
-		}
-
-		projectUuid, err := uuid.FromString(projectId)
-
+		projectUuid, err := uuidFromParam(r, "projectId")
 		if err != nil {
 			w.WriteHeader(404) // Not found for any invalid IDs
 			return
 		}
 
 		project, err := controller.projectRepo.Find(projectUuid)
-
-
 		if err != nil {
 			w.WriteHeader(404) // Not found the project
 			return
 		}
 
 		job := domain.Job{
-			Id:uuid.NewV4(),
-			ProjectId:project.Id,
+			Id:        uuid.NewV4(),
+			ProjectId: project.Id,
 		}
 
-		go func () {
+		go func() {
 			controller.writeRepo.Save(project.Analyse(job.Id))
 		}()
 
